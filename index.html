@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <title>Bugzy test page</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>body{font-family:Arial;padding:20px;direction:rtl}#info{padding:8px;background:#f3f6ff;border:1px solid #d0e0ff;margin-bottom:12px}</style>
+</head>
+<body>
+  <h1>Bugzy — صفحة اختبار</h1>
+  <p id="info">جاري تحميل الـ snippet...</p>
+  <div id="target">عنصر الاختبار هنا</div>
+
+  <!-- ======= الـ snippet الأصلي الذي زودتني به ======= -->
+  <script type="text/javascript">
+    (function (b, u, g, z, y, t = null, i = null) {
+      t = u.createElement(z);
+      t.async = 1;
+      t.crossOrigin = 'anonymous';
+      t.type = 'text/javascript';
+      t.src = 'https://api.bugzy.io/api/project/68ecc4d2fc4d816ff40a8ea6/68f765b082fccbb903546d37/' + y;
+      t.id = 'bugzy-widget';
+      t.setAttribute('data-project-id', '68f765b082fccbb903546d37');
+      t.addEventListener('load', function(){ document.getElementById('info').textContent = 'الـ snippet تم تحميله (onload)'; });
+      t.addEventListener('error', function(){ document.getElementById('info').textContent = 'فشل تحميل الـ snippet (onerror)'; });
+      i = u.getElementsByTagName('head')[0];
+      i.appendChild(t);
+    })(window, document, 'bugzy', 'script', btoa(window.location.host));
+  </script>
+</body>
+</html>
