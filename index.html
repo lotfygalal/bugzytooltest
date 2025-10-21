@@ -1,31 +1,215 @@
 <!doctype html>
 <html lang="ar">
 <head>
-  <meta charset="utf-8"/>
-  <title>Bugzy test page</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>body{font-family:Arial;padding:20px;direction:rtl}#info{padding:8px;background:#f3f6ff;border:1px solid #d0e0ff;margin-bottom:12px}</style>
+  <meta charset="utf-8" />
+  <title>اختبار Snippet - Bugzy</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial; padding: 20px; direction: rtl; }
+    h1 { margin-top: 0 }
+    #status { padding: 10px; background: #f3f6ff; border: 1px solid #cfe; }
+    #target { margin-top: 12px; padding: 12px; border: 1px dashed #ddd; min-height: 60px; }
+    button { margin: 6px 6px 6px 0; padding: 8px 12px; }
+    pre { background:#111; color:#0f0; padding:10px; max-height:200px; overflow:auto; }
+    .ok { color: green; font-weight: 600 }
+    .err { color: red; font-weight: 600 }
+  </style>
 </head>
 <body>
-  <h1>Bugzy — صفحة اختبار</h1>
-  <p id="info">جاري تحميل الـ snippet...</p>
-  <div id="target">عنصر الاختبار هنا</div>
+  <h1>صفحة اختبار الـ Snippet (Bugzy)</h1>
 
-  <!-- ======= الـ snippet الأصلي الذي زودتني به ======= -->
-  <script type="text/javascript">
-    (function (b, u, g, z, y, t = null, i = null) {
-      t = u.createElement(z);
-      t.async = 1;
-      t.crossOrigin = 'anonymous';
-      t.type = 'text/javascript';
-      t.src = 'https://api.bugzy.io/api/project/68ecc4d2fc4d816ff40a8ea6/68f765b082fccbb903546d37/' + y;
-      t.id = 'bugzy-widget';
-      t.setAttribute('data-project-id', '68f765b082fccbb903546d37');
-      t.addEventListener('load', function(){ document.getElementById('info').textContent = 'الـ snippet تم تحميله (onload)'; });
-      t.addEventListener('error', function(){ document.getElementById('info').textContent = 'فشل تحميل الـ snippet (onerror)'; });
-      i = u.getElementsByTagName('head')[0];
-      i.appendChild(t);
-    })(window, document, 'bugzy', 'script', btoa(window.location.host));
+  <div id="status">
+    <div>حالة التحميل: <span id="load-state">لم يبدأ</span></div>
+    <div>العنصر في DOM: <span id="in-dom">لا</span></div>
+    <div>console logs (آخر 20):</div>
+    <pre id="log"></pre>
+  </div>
+
+  <div id="target">
+    <!-- العنصر الذي قد يتأثر بالـ snippet -->
+    <p>عنصر اختبار: سيُستبدل أو يتغير إذا نفّذ الـ snippet وظيفة على DOM.</p>
+  </div>
+
+  <div style="margin-top:12px">
+    <button id="btn-insert">أدرج الـ Snippet (Insert)</button>
+    <button id="btn-remove">أزل الـ Snippet (Remove)</button>
+    <button id="btn-reinsert">أدرج مرة ثانية (Re-insert)</button>
+    <button id="btn-badsrc">أدرج مع src خاطئ (Simulate network failure)</button>
+    <button id="btn-check">تحقق من حالة العنصر</button>
+  </div>
+
+  <hr/>
+
+  <h3>Snippet (كما استلمته)</h3>
+  <pre style="background:#f7f7f7;border:1px solid #eee;padding:10px;overflow:auto">
+&lt;script type="text/javascript"&gt;
+      (function (b, u, g, z, y, t = null, i = null) {
+        t = u.createElement(z);
+        t.async = 1;
+        t.crossOrigin = 'anonymous';
+        t.type = 'text/javascript';
+        t.src = 'https://api.bugzy.io/api/project/68ecc4d2fc4d816ff40a8ea6/68f765b082fccbb903546d37/' + y;
+        t.id = 'bugzy-widget';
+        t.setAttribute('data-project-id', '68f765b082fccbb903546d37');
+        i = u.getElementsByTagName('head')[0]; 
+        i.appendChild(t);
+      })(window, document, 'bugzy', 'script', btoa(window.location.host));
+&lt;/script&gt;
+  </pre>
+
+  <!-- ---- أزرار التحكم تتعامل مع نفس snippet لكن مُدار/مراقب ---- -->
+
+  <script>
+    /* ---------- لائحة لعرض اللوق في الصفحة ---------- */
+    const logEl = document.getElementById('log');
+    const logs = [];
+    function pageLog(...args) {
+      const text = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+      logs.push(text);
+      if (logs.length > 20) logs.shift();
+      logEl.textContent = logs.join('\n');
+      console.log(...args);
+    }
+
+    /* ---------- helpers للحالة ---------- */
+    const stateEl = document.getElementById('load-state');
+    const inDomEl = document.getElementById('in-dom');
+
+    function setState(s, ok = true) {
+      stateEl.textContent = s;
+      stateEl.className = ok ? 'ok' : 'err';
+      pageLog('[STATE]', s);
+    }
+    function setInDom(v) {
+      inDomEl.textContent = v ? 'نعم' : 'لا';
+      pageLog('[DOM]', 'bugzy-widget in DOM?', v);
+    }
+
+    /* ---------- دوال إدراج/إزالة snippet (تستخدم نفس الكود المقدم) ---------- */
+    function insertSnippet({ badSrc = false } = {}) {
+      // لا تُدرج مرتين: إن وُجد العنصر فعلاً نخليها idempotent
+      if (document.getElementById('bugzy-widget')) {
+        setState('الـ snippet موجود بالفعل (لم تُدرج ثانية)', true);
+        setInDom(true);
+        return;
+      }
+
+      // نعيد استخدام نفس نفس الشيفرة كما استلمناها ولكن نستخدم badSrc لتغيير src لمحاكاة فشل
+      (function (b, u, g, z, y, t = null, i = null) {
+        t = u.createElement(z);
+        t.async = 1;
+        t.crossOrigin = 'anonymous';
+        t.type = 'text/javascript';
+        t.src = (badSrc ? 'https://nonexistent.invalid/bugzy.js' :
+                  'https://api.bugzy.io/api/project/68ecc4d2fc4d816ff40a8ea6/68f765b082fccbb903546d37/' + y);
+        t.id = 'bugzy-widget';
+        t.setAttribute('data-project-id', '68f765b082fccbb903546d37');
+        // attach listeners so we can detect load/error
+        t.addEventListener('load', function() {
+          pageLog('script load event fired for #bugzy-widget');
+          setState('تحميل السكربت: تم التحميل (onload)', true);
+        });
+        t.addEventListener('error', function(e) {
+          pageLog('script error event for #bugzy-widget', e);
+          setState('تحميل السكربت: فشل في التحميل (onerror)', false);
+        });
+        // append to head
+        i = u.getElementsByTagName('head')[0];
+        i.appendChild(t);
+        setState('تم إلحاق الوسم إلى DOM؛ في انتظار تحميل/خطأ', true);
+      })(window, document, 'bugzy', 'script', btoa(window.location.host));
+    }
+
+    function removeSnippet() {
+      const el = document.getElementById('bugzy-widget');
+      if (!el) {
+        setState('لا يوجد عنصر لإزالته', false);
+        setInDom(false);
+        return;
+      }
+      el.parentNode.removeChild(el);
+      setState('تمت إزالة العنصر من DOM', true);
+      setInDom(false);
+    }
+
+    /* ---------- مراقب DOM للتغيّر على العنصر (سهل التحقق إن السكربت أدرج نفسه) ---------- */
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const n of m.addedNodes) {
+          if (n.id === 'bugzy-widget' || (n.querySelector && n.querySelector('#bugzy-widget'))) {
+            pageLog('Detected addition of #bugzy-widget');
+            setInDom(true);
+            // في حال السكربت يقوم بتعديل DOM بعد تحميله، نتحقق من تغيّر #target
+            observeTargetOnce();
+          }
+        }
+        for (const n of m.removedNodes) {
+          if (n.id === 'bugzy-widget') {
+            pageLog('#bugzy-widget removed');
+            setInDom(false);
+          }
+        }
+      }
+    });
+    mo.observe(document.head, { childList: true, subtree: false });
+
+    /* ---------- نراقب #target لمشاهدة أي تغيّر محتمل يقوم به snippet ---------- */
+    function observeTargetOnce() {
+      const target = document.getElementById('target');
+      if (!target) return;
+      const obs = new MutationObserver((mut) => {
+        pageLog('target mutated:', mut.map(m => m.type).join(', '));
+        // نعرض محتوى جديد في الـ status
+        setState('الـ snippet غيّر DOM في #target (ملاحظة)', true);
+        obs.disconnect();
+      });
+      obs.observe(target, { childList: true, subtree: true, attributes: true, characterData: true });
+      // timeout احتياطياً
+      setTimeout(() => {
+        obs.disconnect();
+        pageLog('observeTargetOnce timeout — لا تغيّر لوحظ خلال 4 ثواني');
+      }, 4000);
+    }
+
+    /* ---------- زرّي التحكم ---------- */
+    document.getElementById('btn-insert').addEventListener('click', () => {
+      pageLog('Action: insertSnippet()');
+      insertSnippet({ badSrc: false });
+    });
+    document.getElementById('btn-remove').addEventListener('click', () => {
+      pageLog('Action: removeSnippet()');
+      removeSnippet();
+    });
+    document.getElementById('btn-reinsert').addEventListener('click', () => {
+      pageLog('Action: re-insertSnippet()');
+      removeSnippet();
+      // تريث بسيط ثم إدراج ثانية
+      setTimeout(() => insertSnippet({ badSrc: false }), 200);
+    });
+    document.getElementById('btn-badsrc').addEventListener('click', () => {
+      pageLog('Action: insertSnippet() with badSrc = true');
+      insertSnippet({ badSrc: true });
+    });
+    document.getElementById('btn-check').addEventListener('click', () => {
+      const exists = !!document.getElementById('bugzy-widget');
+      setInDom(exists);
+      const target = document.getElementById('target');
+      pageLog('Current #target HTML:', target.innerHTML);
+      if (!exists) setState('لم يتم العثور على العنصر في DOM', false);
+    });
+
+    /* ---------- override console to also show logs in page for convenience ---------- */
+    (function() {
+      const _log = console.log;
+      console.log = function(...a) {
+        pageLog(...a);
+        _log.apply(console, a);
+      };
+    })();
+
+    // وضع حالة ابتدائية
+    setState('جاهز للاختبار — اضغط "أدرج الـ Snippet" لتجربة', true);
+    setInDom(!!document.getElementById('bugzy-widget'));
   </script>
 </body>
 </html>
