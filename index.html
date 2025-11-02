@@ -1,154 +1,141 @@
-<!doctype html>
-<html lang="en" dir="ltr">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Game Tool — Two Teams</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bugzy Test Playground</title>
   <style>
-    :root{
-      --bg1:#071427; --bg2:#071a2f; --card:#0f2233; --accent:#7b61ff; --accent2:#4ee1a1; --danger:#ff5c7c; --glass: rgba(255,255,255,0.03);
-      --glass-2: rgba(255,255,255,0.02);
-      --text:#e6eef8;
+    body {
+      font-family: sans-serif;
+      background: #f4f4f9;
+      color: #222;
+      margin: 0;
+      padding: 2rem;
     }
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--text);font-family:Inter, 'Segoe UI', Tahoma, sans-serif}
-    .wrap{max-width:1100px;margin:18px auto;padding:18px;display:grid;grid-template-columns:1fr 380px;gap:18px}
-    .card{background:linear-gradient(180deg,var(--card), rgba(7,20,36,.6));border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,.6)}
-    header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    h1{font-size:20px;margin:0}
-    .teams{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-    .team{border-radius:12px;padding:16px;position:relative;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
-    .team h2{margin:0 0 8px;font-size:18px}
-    .score{font-weight:900;font-size:46px}
-    .controls{display:flex;gap:8px;margin-top:12px}
-    button{background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;padding:10px 12px;border-radius:10px;color:#021322;font-weight:800;cursor:pointer}
-    button.ghost{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--text)}
-    .big-timer{font-size:96px;font-weight:900;text-align:center;padding:18px 6px}
-    .meta{display:flex;gap:8px;align-items:center;justify-content:center;color:#9fb0c8;margin-top:6px}
-    .active{box-shadow:0 0 0 6px rgba(123,97,255,.06), inset 0 -10px 30px rgba(123,97,255,.06)}
-    .danger{color:var(--danger);animation:blink .9s infinite}
-    @keyframes blink{50%{opacity:.4}}
-    .floating-plus{position:absolute;right:12px;top:10px;padding:6px 10px;border-radius:8px;font-weight:900;color:#021322;background:linear-gradient(90deg,var(--accent2),#fff);transform:translateY(-18px);opacity:0;transition:all .6s cubic-bezier(.2,.9,.3,1)}
-    .plus-show{transform:translateY(-70px);opacity:1}
-    .win-layer{position:fixed;inset:0;pointer-events:none;z-index:60}
-    .confetti{position:absolute;width:10px;height:18px;opacity:.95;animation:fall 1.6s linear forwards}
-    @keyframes fall{to{transform:translateY(100vh) rotate(600deg);opacity:0}}
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,.6);z-index:70}
-    .modal.show{display:flex}
-    .modal-card{width:360px;background:linear-gradient(180deg,#0b1b2b,#071428);padding:18px;border-radius:12px;text-align:center}
-    .modal-card h3{margin:0 0 8px}
-    .modal-actions{display:flex;gap:10px;margin-top:12px}
-    .pulse{animation:pulse 0.9s ease-in-out}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
-    .flash{animation:flash 0.5s}
-    @keyframes flash{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
-    .shake{animation:shake 0.6s}
-    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-8px)}100%{transform:translateX(0)}}
-    .persistent{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:12px;border-radius:10px;color:#9fb0c8}
-    .right-col{display:flex;flex-direction:column;gap:12px}
-    .small{font-size:13px;color:#9fb0c8}
-    footer.small{text-align:center;color:#7f94ab;margin-top:12px}
-
-    @media(max-width:920px){.wrap{grid-template-columns:1fr;}.big-timer{font-size:64px}}
-    @media(max-width:420px){.big-timer{font-size:48px}.score{font-size:36px}}
+    h1 {
+      color: #0078d7;
+      text-align: center;
+    }
+    button {
+      background: #0078d7;
+      color: #fff;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      margin: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .box {
+      background: white;
+      border-radius: 10px;
+      padding: 1rem;
+      margin: 1rem 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input {
+      padding: 0.5rem;
+      margin-right: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <header>
-        <div>
-          <h1>My Results Tool</h1>
-          <div class="small">Lotfy_Galal</div>
-        </div>
-        <div class="persistent" id="persistentUI">Total score: Team 1 = 0 — Team 2 = 0</div>
-      </header>
-
-      <div class="teams" style="margin-top:18px">
-        <div class="team" id="team1Card">
-          <div class="floating-plus" id="t1plus">+1 Bonus</div>
-          <h2>Team One</h2>
-          <div class="score" id="score1">0</div>
-          <div class="controls">
-            <button id="btn1">Main Point</button>
-            <button class="ghost" id="manual1">Bonus +1</button>
-          </div>
-        </div>
-
-        <div class="team" id="team2Card">
-          <div class="floating-plus" id="t2plus">+1 Bonus</div>
-          <h2>Team Two</h2>
-          <div class="score" id="score2">0</div>
-          <div class="controls">
-            <button id="btn2">Main Point</button>
-            <button class="ghost" id="manual2">Bonus +1</button>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:18px" class="card">
-        <div class="big-timer" id="mainTimer">08</div>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
-          <button class="big-btn" id="startBtn">Start / Resume</button>
-          <button class="big-btn ghost" id="restartBtn">Reset Timer</button>
-          <button class="big-btn ghost" id="endBtn">End Game</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="right-col">
-      <div class="card">
-        <h3>Current Points</h3>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
-          <div style="flex:1">
-            <div style="font-size:26px;font-weight:800">Team One: <span id="now1">0</span></div>
-            <div style="font-size:26px;font-weight:800">Team Two: <span id="now2">0</span></div>
-          </div>
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="ghost" id="toggleSound">Mute Sound</button>
-          <button class="ghost" id="resetPersist">Reset Total Score</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Event Log</h3>
-        <div id="log" style="max-height:220px;overflow:auto;color:var(--text);font-size:13px;padding-top:8px;opacity:.9"></div>
-      </div>
-    </div>
+  <h1>Bugzy Console & Network Test Site</h1>
+  
+  <div class="box">
+    <h3>🧠 Console Log Tests</h3>
+    <button onclick="logInfo()">Log Info</button>
+    <button onclick="logWarn()">Log Warning</button>
+    <button onclick="logError()">Log Error</button>
+    <button onclick="throwError()">Throw JS Error</button>
   </div>
 
-  <div class="modal" id="roundModal">
-    <div class="modal-card">
-      <h3>Round Ended</h3>
-      <p>Who gets the point?</p>
-      <div class="modal-actions">
-        <button id="give1">Team One</button>
-        <button id="give2">Team Two</button>
-      </div>
-    </div>
+  <div class="box">
+    <h3>🌐 Network Request Tests</h3>
+    <button onclick="makeGet()">Fetch GET</button>
+    <button onclick="makePost()">Fetch POST</button>
   </div>
 
-  <div id="bigMsg" style="position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);background:linear-gradient(90deg,var(--accent),var(--accent2));color:#021322;padding:18px 28px;border-radius:12px;font-weight:900;font-size:28px;display:none;z-index:80"></div>
+  <div class="box">
+    <h3>💬 Input Simulation</h3>
+    <input id="nameInput" type="text" placeholder="Enter your name..." />
+    <button onclick="submitForm()">Submit</button>
+  </div>
+  <script>
+    // --------------- Console Logging ------------------
+    function logInfo() {
+      console.log("Bugzy Test Log — Everything is working fine!");
+    }
 
-  <div class="win-layer" id="winLayer"></div>
+    function logWarn() {
+      console.warn("Bugzy Test Warning — Something looks suspicious...");
+    }
 
-  <audio id="tick" src="https://www.soundjay.com/buttons/sounds/beesp-01a.mp3" preload="auto"></audio>
-  <audio id="tick2" src="https://www.soundjay.com/buttons/sounds/besep-02.mp3" preload="auto"></audio>
-  <audio id="point" src="https://www.soundjay.com/misc/sounds/besll-ringing-05.mp3" preload="auto"></audio>
-  <audio id="popupSound" src="https://www.soundjay.com/button/sousnds/button-3.mp3" preload="auto"></audio>
-  <audio id="endSound" src="https://www.soundjay.com/misc/sounds/sbell-ringing-01.mp3" preload="auto"></audio>
+    function logError() {
+      console.error("Bugzy Test Error — Something went wrong!");
+    }
 
+    function throwError() {
+      throw new Error("Manual test error triggered for Bugzy logging.");
+    }
+
+    // --------------- Network Tests --------------------
+    async function makeGet() {
+      console.log("Sending test GET request...");
+      try {
+        const res = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+        const data = await res.json();
+        console.log("GET response:", data);
+      } catch (err) {
+        console.error("GET request failed:", err);
+      }
+    }
+
+    async function makePost() {
+      console.log("Sending test POST request...");
+      try {
+        const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: "Bugzy test", body: "Hello world" }),
+        });
+        const data = await res.json();
+        console.log("POST response:", data);
+      } catch (err) {
+        console.error("POST request failed:", err);
+      }
+    }
+
+    // --------------- Input Simulation -----------------
+    function submitForm() {
+      const name = document.getElementById("nameInput").value;
+      if (!name) {
+        console.warn("No name entered!");
+        alert("Please enter your name before submitting.");
+        return;
+      }
+      console.log(`Form submitted with name: ${name}`);
+      alert(`Thanks, ${name}! Check the console for logs.`);
+    }
+
+    // --------------- Background heartbeat -------------
+    setInterval(() => {
+      console.log("Heartbeat log — " + new Date().toLocaleTimeString());
+    }, 10000);
+  </script>
   <script type="text/javascript">
         (function (b, u, g, z, y, t = null, i = null) {
           t = u.createElement(z);
           t.async = 1;
           t.crossOrigin = 'anonymous';
           t.type = 'text/javascript';
-          t.src = 'https://api.bugzy.io/api/project/68ef67934b83d1f169c47ab2/68fd15c91d9f23303fcbbc91/' + y;
+          t.src = 'https://api.bugzy.io/api/project/690750b314aca226e2ff1ea1/6907616614aca226e2ff28a1/' + y;
           t.id = 'bugzy-widget';
-          t.setAttribute('data-project-id', '68fd15c91d9f23303fcbbc91');
+          t.setAttribute('data-project-id', '6907616614aca226e2ff28a1');
           i = u.getElementsByTagName('head')[0]; 
           i.appendChild(t);
         })(window, document, 'bugzy', 'script', btoa(window.location.host));
