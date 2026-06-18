@@ -110,6 +110,18 @@ function beacon(i){
  msg(i,ok?"✅ Beacon generated.":"❌ Beacon rejected.",ok?"pass":"fail");
 }
 </script>
-<!-- Paste Bugzy Widget snippet here -->
+<script type="text/javascript">
+        (function (b, u, g, z, y, t = null, i = null) {
+          t = u.createElement(z);
+          t.async = 1;
+          t.crossOrigin = 'anonymous';
+          t.type = 'text/javascript';
+          t.src = 'https://api.dev.bugzy.io/api/project/6a323edf4c28600acf87de34/' + y;
+          t.id = 'bugzy-widget';
+          t.setAttribute('data-project-id', '6a323edf4c28600acf87de34');
+          i = u.getElementsByTagName('head')[0];
+          i.appendChild(t);
+        })(window, document, 'bugzy', 'script', btoa(window.location.host));
+</script>
 </body>
 </html>
