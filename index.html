@@ -46,4 +46,19 @@ function slowRequest(){fetch("https://httpbin.org/delay/5").then(r=>console.log(
 function corsError(){fetch("https://google.com",{mode:"cors"}).catch(e=>console.error(e));}
 window.addEventListener("error",e=>console.error("Global:",e.message));
 window.addEventListener("unhandledrejection",e=>console.error(e.reason));
-</script></body></html>
+</script>
+ <script type="text/javascript">
+        (function (b, u, g, z, y, t = null, i = null) {
+          t = u.createElement(z);
+          t.async = 1;
+          t.crossOrigin = 'anonymous';
+          t.type = 'text/javascript';
+          t.src = 'https://api.dev.bugzy.io/api/project/6a323edf4c28600acf87de34/' + y;
+          t.id = 'bugzy-widget';
+          t.setAttribute('data-project-id', '6a323edf4c28600acf87de34');
+          i = u.getElementsByTagName('head')[0];
+          i.appendChild(t);
+        })(window, document, 'bugzy', 'script', btoa(window.location.host));
+</script>
+</body>
+</html>
