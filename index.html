@@ -1,132 +1,117 @@
+
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bugzy Test Playground</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f4f4f9;
-      color: #222;
-      margin: 0;
-      padding: 2rem;
-    }
-    h1 {
-      color: #0078d7;
-      text-align: center;
-    }
-    button {
-      background: #0078d7;
-      color: #fff;
-      border: none;
-      padding: 0.8rem 1.2rem;
-      margin: 0.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #005fa3;
-    }
-    .box {
-      background: white;
-      border-radius: 10px;
-      padding: 1rem;
-      margin: 1rem 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    input {
-      padding: 0.5rem;
-      margin-right: 0.5rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bugzy QA Lab V2</title>
+<style>
+body{font-family:Arial;background:#f4f6f9;margin:0;padding:24px}
+h1{color:#18304a}
+.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:16px;margin:14px 0}
+button{padding:8px 14px;margin-top:10px}
+.status{margin-top:10px;padding:10px;border-radius:6px;background:#eee;display:none}
+.pass{background:#d4edda;color:#155724}
+.warn{background:#fff3cd;color:#856404}
+.fail{background:#f8d7da;color:#721c24}
+code{background:#eee;padding:2px 4px}
+</style>
 </head>
 <body>
-  <h1>Bugzy Console & Network Test Site</h1>
-  
-  <div class="box">
-    <h3>?? Console Log Tests</h3>
-    <button onclick="logInfo()">Log Info</button>
-    <button onclick="logWarn()">Log Warning</button>
-    <button onclick="logError()">Log Error</button>
-    <button onclick="throwError()">Throw JS Error</button>
-  </div>
+<h1>Bugzy Network Capture QA Lab V2</h1>
+<p>Run each scenario then verify it inside <b>Bugzy Network Dev Tool</b>.</p>
+<div id="tests"></div>
+<script>
+const tests=[
+{t:"POST JSON (Fetch)",e:"Payload shown as structured JSON (not {}).",fn:fetchJSON},
+{t:"POST JSON (XHR)",e:"Payload shown as structured JSON (not {}).",fn:xhrJSON},
+{t:"POST FormData (XHR)",e:"Fields shown instead of {}.",fn:formData},
+{t:"POST URLSearchParams (XHR)",e:"Fields shown instead of {}.",fn:urlParams},
+{t:"302 Redirect",e:"Final URL + Requested URL + Redirected = Yes.",fn:redirect},
+{t:"Timeout",e:"Status should be Timeout.",fn:timeoutReq},
+{t:"Canceled",e:"Status should be Canceled.",fn:cancelReq},
+{t:"Binary Response",e:"Displayed as [Binary payload].",fn:binary},
+{t:"Sensitive Headers",e:"Authorization/x-api-key masked.",fn:fetchJSON},
+{t:"Default Redaction",e:"token/password redacted.",fn:fetchJSON},
+{t:"sendBeacon",e:"type=beacon, method=POST.",fn:beacon}
+];
 
-  <div class="box">
-    <h3>?? Network Request Tests</h3>
-    <button onclick="makeGet()">Fetch GET</button>
-    <button onclick="makePost()">Fetch POST</button>
-  </div>
+const c=document.getElementById("tests");
+tests.forEach((x,i)=>{
+ c.innerHTML+=`<div class="card">
+ <h3>${i+1}. ${x.t}</h3>
+ <p><b>Expected:</b> ${x.e}</p>
+ <button onclick="run(${i})">Run Test</button>
+ <div class="status" id="s${i}"></div>
+ </div>`;
+});
 
-  <div class="box">
-    <h3>?? Input Simulation</h3>
-    <input id="nameInput" type="text" placeholder="Enter your name..." />
-    <button onclick="submitForm()">Submit</button>
-  </div>
-  <script>
-    // --------------- Console Logging ------------------
-    function logInfo() {
-      console.log("Bugzy Test Log — Everything is working fine!");
-    }
+function msg(i,m,cls){
+ let d=document.getElementById("s"+i);
+ d.className="status "+cls;
+ d.style.display="block";
+ d.innerHTML=m;
+}
+ 
 
-    function logWarn() {
-      console.warn("Bugzy Test Warning — Something looks suspicious...");
-    }
+function run(i){tests[i].fn(i);}
 
-    function logError() {
-      console.error("Bugzy Test Error — Something went wrong!");
-    }
-
-    function throwError() {
-      throw new Error("Manual test error triggered for Bugzy logging.");
-    }
-
-    // --------------- Network Tests --------------------
-    async function makeGet() {
-      console.log("Sending test GET request...");
-      try {
-        const res = await fetch("https://jsonplaceholder.typicode.com/posts/1");
-        const data = await res.json();
-        console.log("GET response:", data);
-      } catch (err) {
-        console.error("GET request failed:", err);
-      }
-    }
-
-    async function makePost() {
-      console.log("Sending test POST request...");
-      try {
-        const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: "Bugzy test", body: "Hello world" }),
-        });
-        const data = await res.json();
-        console.log("POST response:", data);
-      } catch (err) {
-        console.error("POST request failed:", err);
-      }
-    }
-
-    // --------------- Input Simulation -----------------
-    function submitForm() {
-      const name = document.getElementById("nameInput").value;
-      if (!name) {
-        console.warn("No name entered!");
-        alert("Please enter your name before submitting.");
-        return;
-      }
-      console.log(`Form submitted with name: ${name}`);
-      alert(`Thanks, ${name}! Check the console for logs.`);
-    }
-
-    // --------------- Background heartbeat -------------
-    setInterval(() => {
-      console.log("Heartbeat log — " + new Date().toLocaleTimeString());
-    }, 10000);
-  </script>
+async function fetchJSON(i){
+ await fetch("https://httpbin.org/post",{method:"POST",
+ headers:{"Content-Type":"application/json","Authorization":"Bearer SECRET","x-api-key":"KEY123"},
+ body:JSON.stringify({name:"Lotfy",password:"123456",token:"abc"})});
+ msg(i,"? Request generated. Verify Bugzy Dev Tool.","pass");
+}
+function xhrJSON(i){
+ let x=new XMLHttpRequest();
+ x.open("POST","https://httpbin.org/post");
+ x.setRequestHeader("Content-Type","application/json");
+ x.onload=()=>msg(i,"? XHR JSON generated.","pass");
+ x.send(JSON.stringify({name:"Lotfy",password:"123"}));
+}
+function formData(i){
+ let f=new FormData();
+ f.append("name","Lotfy");f.append("password","123");
+ let x=new XMLHttpRequest();
+ x.open("POST","https://httpbin.org/post");
+ x.onload=()=>msg(i,"? FormData generated.","pass");
+ x.send(f);
+}
+function urlParams(i){
+ let p=new URLSearchParams();
+ p.append("username","lotfy");p.append("secret","abc");
+ let x=new XMLHttpRequest();
+ x.open("POST","https://httpbin.org/post");
+ x.onload=()=>msg(i,"? URLSearchParams generated.","pass");
+ x.send(p);
+}
+function redirect(i){
+ fetch("https://httpbin.org/redirect-to?url=https://httpbin.org/get")
+ .then(()=>msg(i,"? Redirect generated.","pass"));
+}
+function timeoutReq(i){
+ let x=new XMLHttpRequest();
+ x.open("GET","https://httpbin.org/delay/10");
+ x.timeout=2000;
+ x.ontimeout=()=>msg(i,"? Timeout generated.","warn");
+ x.send();
+}
+function cancelReq(i){
+ let x=new XMLHttpRequest();
+ x.open("GET","https://httpbin.org/delay/10");
+ x.send();
+ setTimeout(()=>{x.abort();msg(i,"?? Request canceled.","fail");},1000);
+}
+function binary(i){
+ fetch("https://httpbin.org/image/png")
+ .then(r=>r.blob())
+ .then(()=>msg(i,"? Binary response generated.","pass"));
+}
+function beacon(i){
+ let ok=navigator.sendBeacon("https://httpbin.org/post",JSON.stringify({event:"qa",token:"secret"}));
+ msg(i,ok?"? Beacon generated.":"? Beacon rejected.",ok?"pass":"fail");
+}
+</script>
 <script type="text/javascript">
         (function (b, u, g, z, y, t = null, i = null) {
           t = u.createElement(z);
@@ -140,6 +125,5 @@
           i.appendChild(t);
         })(window, document, 'bugzy', 'script', btoa(window.location.host));
 </script>
-  
 </body>
 </html>
